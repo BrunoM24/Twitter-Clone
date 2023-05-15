@@ -18,6 +18,13 @@ class _LoginViewState extends State<LoginView> {
   final passwordController = TextEditingController();
 
   @override
+  void dispose() {
+    super.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: appBar,
