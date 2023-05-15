@@ -9,7 +9,7 @@ class UIConstants {
       centerTitle: true,
       title: SvgPicture.asset(
         AssetsConstants.twitterLogo,
-        theme: const SvgTheme(currentColor: Pallete.blueColor),
+        colorFilter: const ColorFilter.mode(Pallete.blueColor, BlendMode.srcIn),
         height: 32,
       ),
     );
