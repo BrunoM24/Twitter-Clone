@@ -1,12 +1,19 @@
+import 'package:appwrite/models.dart' as model;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:twitter_clone/apis/auth_api.dart';
 import 'package:twitter_clone/core/utils.dart';
+import 'package:twitter_clone/features/auth/view/login_view.dart';
+import 'package:twitter_clone/features/home/view/home_view.dart';
 
 final authControllerProvider = StateNotifierProvider<AuthController, bool>(
   (ref) => AuthController(
     authAPI: ref.watch(authAPIProvider),
   ),
+);
+
+final currentUserAccountProvider = FutureProvider(
+  (ref) => ref.watch(authControllerProvider.notifier).currentUser(),
 );
 
 class AuthController extends StateNotifier<bool> {
@@ -29,7 +36,13 @@ class AuthController extends StateNotifier<bool> {
 
     response.fold(
       (failure) => showSnackBar(context, failure.message),
-      (account) => print(account.email),
+      (account) {
+        showSnackBar(context, 'Account created! Please login.');
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginView()),
+        );
+      },
     );
   }
 
@@ -46,7 +59,12 @@ class AuthController extends StateNotifier<bool> {
 
     response.fold(
       (l) => showSnackBar(context, l.message),
-      (r) => print(r.userId),
+      (r) => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeView()),
+      ),
     );
   }
+
+  Future<model.Account?> currentUser() => _authApi.currentUserAccount();
 }
