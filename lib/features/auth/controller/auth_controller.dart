@@ -2,13 +2,16 @@ import 'package:appwrite/models.dart' as model;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:twitter_clone/apis/auth_api.dart';
+import 'package:twitter_clone/apis/user_api.dart';
 import 'package:twitter_clone/core/utils.dart';
 import 'package:twitter_clone/features/auth/view/login_view.dart';
 import 'package:twitter_clone/features/home/view/home_view.dart';
+import 'package:twitter_clone/models/user_model.dart';
 
 final authControllerProvider = StateNotifierProvider<AuthController, bool>(
   (ref) => AuthController(
     authAPI: ref.watch(authAPIProvider),
+    userAPI: ref.watch(userAPIProvider),
   ),
 );
 
@@ -18,9 +21,13 @@ final currentUserAccountProvider = FutureProvider(
 
 class AuthController extends StateNotifier<bool> {
   final AuthAPI _authApi;
+  final UserAPI _userAPI;
 
-  AuthController({required AuthAPI authAPI})
-      : _authApi = authAPI,
+  AuthController({
+    required AuthAPI authAPI,
+    required UserAPI userAPI,
+  })  : _authApi = authAPI,
+        _userAPI = userAPI,
         super(false);
 
   Future<void> signup({
@@ -36,11 +43,30 @@ class AuthController extends StateNotifier<bool> {
 
     response.fold(
       (failure) => showSnackBar(context, failure.message),
-      (account) {
-        showSnackBar(context, 'Account created! Please login.');
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const LoginView()),
+      (account) async {
+        UserModel userModel = UserModel(
+          uid: account.$id,
+          email: email,
+          name: getNameFromEmail(email),
+          bio: '',
+          profilePic: '',
+          bannerPic: '',
+          isTwitterBlue: false,
+          followers: const [],
+          following: const [],
+        );
+
+        final res = await _userAPI.saveUserData(userModel);
+
+        res.fold(
+          (failure) => showSnackBar(context, failure.message),
+          (_) {
+            showSnackBar(context, 'Account created! Please login.');
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const LoginView()),
+            );
+          },
         );
       },
     );
